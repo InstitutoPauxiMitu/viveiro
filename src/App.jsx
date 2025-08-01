@@ -1,4 +1,6 @@
-// src/App.jsx
+// Arquivo: src/App.jsx
+// IMPORTANTE: Certifique-se de que este arquivo SÓ contenha este código.
+
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
@@ -10,7 +12,7 @@ import AnimalListPage from "./pages/Animals/AnimalListPage";
 import AnimalDetailsPage from "./pages/Animals/AnimalDetailsPage";
 import Account from "./pages/Account";
 
-// O componente App principal, que lida com a autenticação e roteamento
+// Componente principal da aplicação
 function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,38 +20,40 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    // Listener para mudanças de estado de autenticação
     const handleAuthChange = (_event, newSession) => {
       setSession(newSession);
       setLoading(false);
     };
 
-    // Define as rotas que podem ser acessadas sem autenticação
-    const publicPaths = ["/login", "/animal-details"];
+    // Define as rotas que não precisam de autenticação
+    const publicPaths = ["/login", "/animal-details", "/lista-animais"];
     const isPublicPath = publicPaths.some((path) =>
       location.pathname.startsWith(path)
     );
 
-    // Configura o listener para mudanças na autenticação
+    // Adiciona o listener
     const { data: authListener } =
       supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Obtém a sessão inicial do usuário
+    // Obtém a sessão atual ao carregar a página
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
 
-      // Se não houver sessão e o usuário não estiver em uma rota pública, redireciona para o login
+      // Se não houver sessão e a rota não for pública, redireciona para o login
       if (!session && !isPublicPath) {
         navigate("/login");
       }
     });
 
+    // Função de limpeza do listener
     return () => {
       authListener.subscription.unsubscribe();
     };
   }, [navigate, location]);
 
-  // Exibe um estado de carregamento enquanto a autenticação é verificada
+  // Exibe uma tela de carregamento enquanto a sessão é verificada
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -60,26 +64,22 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800">
-      {/* O Header só será renderizado se houver uma sessão ativa */}
+      {/* O cabeçalho é renderizado apenas se o usuário estiver logado */}
       {session && <Header session={session} />}
       <main className="container mx-auto p-4 sm:p-8 flex-grow">
         <Routes>
-          {/* Rotas públicas */}
+          {/* Rotas públicas que podem ser acessadas sem login */}
           <Route path="/login" element={<LoginPage />} />
-          {/* Rota para a página de detalhes de um animal, requer um ID */}
           <Route path="/animal-details/:id" element={<AnimalDetailsPage />} />
-          {/* Rota para a lista de animais, que é pública. Você pode querer torná-la protegida */}
           <Route path="/lista-animais" element={<AnimalListPage />} />
 
-          {/* Rotas protegidas (só acessíveis se houver uma sessão) */}
+          {/* Rotas protegidas, que exigem uma sessão ativa */}
           {session ? (
             <>
               <Route path="/" element={<HomePage />} />
               <Route path="/account" element={<Account />} />
               <Route path="/cadastro-animal" element={<AnimalFormPage />} />
-              <Route path="/lista-animal" element={<AnimalListPage />} />
-              <Route path="/detalhes-animal" element={<AnimalDetailsPage />} />
-              {/* Rota para tratar páginas não encontradas (404) dentro da área protegida */}
+              {/* Rota para lidar com páginas não encontradas */}
               <Route
                 path="*"
                 element={
@@ -90,7 +90,7 @@ function App() {
               />
             </>
           ) : (
-            // Se a rota não for uma das rotas públicas e não houver sessão, redireciona para o login
+            // Redireciona para a página de login se o usuário tentar acessar uma rota protegida sem estar logado
             <Route path="*" element={<LoginPage />} />
           )}
         </Routes>
@@ -98,23 +98,5 @@ function App() {
     </div>
   );
 }
-
-// Para usar o BrowserRouter, precisamos envolvê-lo em um componente de nível superior
-// Crie um arquivo em src/main.jsx ou src/index.js e envolva o componente App:
-/*
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.jsx';
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
-);
-*/
 
 export default App;

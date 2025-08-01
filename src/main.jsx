@@ -1,3 +1,6 @@
+// IMPORTANTE: Certifique-se de que este arquivo SÓ contenha este código.
+// O ponto de entrada da sua aplicação, onde o router é configurado.
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -11,3 +14,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// --- FIM do arquivo src/main.jsx ---
