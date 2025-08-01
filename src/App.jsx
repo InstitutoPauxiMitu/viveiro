@@ -66,15 +66,18 @@ function App() {
         <Routes>
           {/* Rotas públicas */}
           <Route path="/login" element={<LoginPage />} />
+          {/* Rota para a página de detalhes de um animal, requer um ID */}
           <Route path="/animal-details/:id" element={<AnimalDetailsPage />} />
+          {/* Rota para a lista de animais, que é pública. Você pode querer torná-la protegida */}
+          <Route path="/lista-animais" element={<AnimalListPage />} />
 
           {/* Rotas protegidas (só acessíveis se houver uma sessão) */}
           {session ? (
             <>
               <Route path="/" element={<HomePage />} />
               <Route path="/account" element={<Account />} />
-              <Route path="/lista-animais" element={<AnimalListPage />} />
               <Route path="/cadastro-animal" element={<AnimalFormPage />} />
+              {/* Rota para tratar páginas não encontradas (404) dentro da área protegida */}
               <Route
                 path="*"
                 element={
@@ -85,7 +88,7 @@ function App() {
               />
             </>
           ) : (
-            // Redireciona para o login se a rota não for pública e não houver sessão
+            // Se a rota não for uma das rotas públicas e não houver sessão, redireciona para o login
             <Route path="*" element={<LoginPage />} />
           )}
         </Routes>
@@ -93,5 +96,23 @@ function App() {
     </div>
   );
 }
+
+// Para usar o BrowserRouter, precisamos envolvê-lo em um componente de nível superior
+// Crie um arquivo em src/main.jsx ou src/index.js e envolva o componente App:
+/*
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App.jsx';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+);
+*/
 
 export default App;
