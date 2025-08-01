@@ -1,0 +1,11 @@
+ /* Importações base do Tailwind CSS */
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+
+ /* Estilos globais personalizados */
+ body {
+   font-family: 'Inter', sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+ }
