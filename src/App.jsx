@@ -77,6 +77,8 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/account" element={<Account />} />
               <Route path="/cadastro-animal" element={<AnimalFormPage />} />
+              <Route path="/lista-animal" element={<AnimalListPage />} />
+              <Route path="/detalhes-animal" element={<AnimalDetailsPage />} />
               {/* Rota para tratar páginas não encontradas (404) dentro da área protegida */}
               <Route
                 path="*"
