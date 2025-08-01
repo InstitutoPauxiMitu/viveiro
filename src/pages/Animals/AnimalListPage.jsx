@@ -1,3 +1,6 @@
+// Arquivo: frontend/src/pages/Animals/ListaAnimais.jsx
+// Este componente exibe a lista de animais e agora navega para a rota correta.
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +10,8 @@ import { AnimatePresence, motion } from "framer-motion";
 function ListaAnimais() {
   const [animais, setAnimais] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchAnimais();
-  }, []);
 
   const fetchAnimais = async () => {
     setLoading(true);
@@ -22,14 +22,25 @@ function ListaAnimais() {
 
     if (error) {
       console.error("Erro ao buscar animais:", error);
+      setError("Erro ao carregar a lista de animais.");
+      setAnimais([]);
     } else {
       setAnimais(data || []);
+      setError(null);
     }
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchAnimais();
+  }, []);
+
+  // --- Funções de manipulação de ações (Ver, Editar, Excluir) ---
+
+  // CORREÇÃO AQUI: A string de navegação deve ser "/animal-details/:id"
+  // para coincidir com a rota em App.jsx.
   const handleVerDetalhes = (id) => {
-    navigate(`/animal-detalhes/${id}`);
+    navigate(`/animal-details/${id}`);
   };
 
   const handleEditar = (id) => {
@@ -38,7 +49,7 @@ function ListaAnimais() {
 
   const handleExcluir = async (id) => {
     const confirmation = window.confirm(
-      "Tem certeza que deseja excluir este animal?"
+      "Tem certeza que deseja excluir este animal? Essa ação é irreversível."
     );
     if (!confirmation) {
       return;
@@ -51,7 +62,7 @@ function ListaAnimais() {
       console.error("Erro ao excluir animal:", error);
       alert("Erro ao excluir animal. Por favor, tente novamente.");
     } else {
-      alert("Animal excluído com sucesso!");
+      console.log("Animal excluído com sucesso!");
       fetchAnimais(); // Atualiza a lista após a exclusão
     }
     setLoading(false);
@@ -61,6 +72,14 @@ function ListaAnimais() {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-red-500 text-center">
+        <h2 className="text-2xl font-bold">{error}</h2>
       </div>
     );
   }
@@ -83,7 +102,7 @@ function ListaAnimais() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3 }}
-              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden flex flex-col cursor-pointer"
+              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden flex flex-col"
             >
               <div className="p-4 flex-grow">
                 <img
