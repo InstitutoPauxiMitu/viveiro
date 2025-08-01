@@ -1,5 +1,5 @@
 // Arquivo: src/App.jsx
-// Este é o componente principal da sua aplicação com roteamento refatorado.
+// Este é o componente principal da sua aplicação com a nova rota para o QR Scanner.
 
 import React, { useState, useEffect } from "react";
 import {
@@ -16,6 +16,7 @@ import LoginPage from "./pages/Auth/LoginPage";
 import AnimalFormPage from "./pages/Animals/AnimalFormPage";
 import AnimalListPage from "./pages/Animals/AnimalListPage";
 import AnimalDetailsPage from "./pages/Animals/AnimalDetailsPage";
+import QrCodeScannerPage from "./pages/QrCodeScannerPage"; // Importa o novo componente
 import Account from "./pages/Account";
 
 function App() {
@@ -24,29 +25,24 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Listener para mudanças de estado de autenticação
     const handleAuthChange = (_event, newSession) => {
       setSession(newSession);
       setLoading(false);
     };
 
-    // Adiciona o listener
     const { data: authListener } =
       supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Obtém a sessão atual ao carregar a página
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Função de limpeza do listener
     return () => {
       authListener.subscription.unsubscribe();
     };
   }, []);
 
-  // Exibe uma tela de carregamento enquanto a sessão é verificada
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -55,7 +51,6 @@ function App() {
     );
   }
 
-  // Define a URL de redirecionamento após o login
   const from = location.state?.from?.pathname || "/";
 
   return (
@@ -67,10 +62,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/animal-details/:id" element={<AnimalDetailsPage />} />
           <Route path="/lista-animais" element={<AnimalListPage />} />
-
-          {/* Rotas Protegidas - Acessíveis apenas com sessão ativa */}
-          {/* Cada rota protegida agora verifica se há uma sessão. */}
-          {/* Se houver, renderiza o componente. Se não, redireciona para o login. */}
+          <Route path="/qr-scanner" element={<QrCodeScannerPage />} />{" "}
+          {/* Nova rota adicionada */}
+          {/* Rotas Protegidas */}
           <Route
             path="/"
             element={session ? <HomePage /> : <Navigate to="/login" replace />}
@@ -85,7 +79,6 @@ function App() {
               session ? <AnimalFormPage /> : <Navigate to="/login" replace />
             }
           />
-
           {/* Rota de fallback para páginas não encontradas */}
           <Route
             path="*"

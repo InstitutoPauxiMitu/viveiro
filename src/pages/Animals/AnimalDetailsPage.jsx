@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import { FaArrowLeft, FaEdit, FaTrash } from "react-icons/fa"; // Assumindo que a biblioteca react-icons está instalada
+import { FaArrowLeft, FaEdit, FaTrash, FaQrcode } from "react-icons/fa";
 
 function AnimalDetailsPage() {
   const { id } = useParams();
@@ -82,7 +82,7 @@ function AnimalDetailsPage() {
         </h1>
       </div>
 
-      <div className="grid  gap-8 lg:gap-12">
+      <div className="grid gap-8 lg:gap-12">
         {/* Imagem do Animal */}
         <div className="flex justify-center items-start">
           {animal.imagem_url ? (
@@ -90,6 +90,10 @@ function AnimalDetailsPage() {
               src={animal.imagem_url}
               alt={`Imagem de ${animal.nome_comum}`}
               className="rounded-lg shadow-lg max-h-[500px] w-full object-cover transform hover:scale-105 transition-transform duration-300"
+              onError={(e) =>
+                (e.target.src =
+                  "https://placehold.co/400x300/e2e8f0/6b7280?text=Imagem+N%C3%A3o+Encontrada")
+              }
             />
           ) : (
             <div className="flex items-center justify-center bg-gray-200 rounded-lg h-[400px] w-full text-gray-500 text-center p-4">
@@ -100,7 +104,6 @@ function AnimalDetailsPage() {
 
         {/* Detalhes do Animal - Lado Direito */}
         <div className="space-y-6">
-          {/* Nova estrutura para exibir os detalhes */}
           <div className="bg-gray-50 p-6 rounded-lg shadow-inner">
             <h2 className="text-2xl font-bold text-gray-700 mb-4">
               Informações do Animal
@@ -116,8 +119,6 @@ function AnimalDetailsPage() {
                 <span className="font-semibold text-gray-800">Família:</span>{" "}
                 {animal.familia}
               </p>
-
-              {/* Seção de Distribuição Geográfica com o mapa */}
               <div>
                 <p className="text-gray-600">
                   <span className="font-semibold text-gray-800">
@@ -171,8 +172,15 @@ function AnimalDetailsPage() {
           </div>
         </div>
       </div>
-
-      <div className="flex space-x-4 mt-8 justify-end"></div>
+      {/* Botão de Leitura de QR Code adicionado aqui */}
+      <div className="mt-8 flex justify-center">
+        <button
+          onClick={() => navigate("/qr-scanner")}
+          className="flex items-center px-6 py-3 bg-green-500 text-white font-bold text-lg rounded-lg shadow-xl hover:bg-green-600 transition-colors transform hover:scale-105"
+        >
+          <FaQrcode className="mr-3" size={24} /> Ler Outro QR Code
+        </button>
+      </div>
     </div>
   );
 }
