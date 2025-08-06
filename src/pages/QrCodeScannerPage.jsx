@@ -21,29 +21,30 @@ function QrCodeScannerPage() {
     setCameraActive(false);
 
     if (!videoRef.current) {
-      setError("Elemento de vídeo não encontrado.");
+      setError(
+        "Elemento de vídeo não encontrado. Verifique a renderização do componente."
+      );
       setLoading(false);
       return;
     }
 
     try {
-      // O QrScanner tenta iniciar a câmera automaticamente
+      // Tenta iniciar a câmera e o scanner
       const qrScanner = new QrScanner(
         videoRef.current,
         (result) => {
           // Quando um QR Code é lido, esta função é chamada
-          // 'result.data' contém a string (URL) do QR Code
           if (result.data) {
             console.log("QR Code detectado:", result.data);
             // Navega para a URL contida no QR Code
             window.location.href = result.data;
-            qrScanner.stop();
+            qrScanner.stop(); // Para o scanner após a leitura
           }
         },
         {
           onDecodeError: (err) => {
-            console.error("Erro ao decodificar QR Code:", err);
             // Ignora erros de decodificação para não poluir o console
+            // console.error("Erro ao decodificar QR Code:", err);
           },
           highlightScanRegion: true,
           highlightCodeOutline: true,
@@ -53,18 +54,25 @@ function QrCodeScannerPage() {
 
       // Inicia o scanner
       await qrScanner.start();
+      videoRef.current.play(); // Garante que o vídeo comece a tocar
       setScanner(qrScanner);
       setCameraActive(true);
     } catch (err) {
       console.error("Erro ao iniciar o scanner:", err);
       if (err.name === "NotAllowedError" || err.name === "SecurityError") {
         setError(
-          "Permissão de acesso à câmera negada. Habilite a câmera nas configurações do seu navegador e tente novamente."
+          "Permissão de acesso à câmera negada. Por favor, habilite a câmera nas configurações do seu navegador e tente novamente."
         );
       } else if (err.name === "NotFoundError") {
-        setError("Nenhuma câmera encontrada no dispositivo.");
+        setError(
+          "Nenhuma câmera encontrada no dispositivo. Verifique se o dispositivo possui uma câmera ou se ela está em uso por outro aplicativo."
+        );
+      } else if (err.name === "OverconstrainedError") {
+        setError(
+          "Não foi possível encontrar uma câmera que atenda aos requisitos (ex: câmera traseira). Tente novamente."
+        );
       } else {
-        setError("Erro ao iniciar a câmera. Tente novamente.");
+        setError("Erro desconhecido ao iniciar a câmera. Tente novamente.");
       }
       setCameraActive(false);
     } finally {
