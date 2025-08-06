@@ -2,73 +2,87 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaCamera } from "react-icons/fa";
+import { FaArrowLeft, FaCamera, FaSync } from "react-icons/fa";
+import QrScanner from "qr-scanner"; // Assumindo que a biblioteca 'qr-scanner' está instalada e pode ser importada
 
-// Componente para a página de Leitura de QR Code
 function QrCodeScannerPage() {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const [scanner, setScanner] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [simulatedScanResult, setSimulatedScanResult] = useState(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
-  // Efeito para iniciar/parar a câmera quando o componente é montado/desmontado
-  useEffect(() => {
-    // Função para iniciar a câmera
-    const startCamera = async () => {
-      try {
-        setLoading(true);
-        // Acessa a câmera do usuário
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+  // Função para iniciar o scanner de QR Code
+  const startScanner = async () => {
+    setLoading(true);
+    setError(null); // Limpa o erro anterior
+    setCameraActive(false);
+
+    if (!videoRef.current) {
+      setError("Elemento de vídeo não encontrado.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // O QrScanner tenta iniciar a câmera automaticamente
+      const qrScanner = new QrScanner(
+        videoRef.current,
+        (result) => {
+          // Quando um QR Code é lido, esta função é chamada
+          // 'result.data' contém a string (URL) do QR Code
+          if (result.data) {
+            console.log("QR Code detectado:", result.data);
+            // Navega para a URL contida no QR Code
+            window.location.href = result.data;
+            qrScanner.stop();
+          }
+        },
+        {
+          onDecodeError: (err) => {
+            console.error("Erro ao decodificar QR Code:", err);
+            // Ignora erros de decodificação para não poluir o console
+          },
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          preferredCamera: "environment", // Prefere a câmera traseira
         }
-        setCameraActive(true);
-        setError(null);
-      } catch (err) {
-        console.error("Erro ao acessar a câmera:", err);
+      );
+
+      // Inicia o scanner
+      await qrScanner.start();
+      setScanner(qrScanner);
+      setCameraActive(true);
+    } catch (err) {
+      console.error("Erro ao iniciar o scanner:", err);
+      if (err.name === "NotAllowedError" || err.name === "SecurityError") {
         setError(
-          "Não foi possível acessar a câmera. Por favor, verifique as permissões."
+          "Permissão de acesso à câmera negada. Habilite a câmera nas configurações do seu navegador e tente novamente."
         );
-        setCameraActive(false);
-      } finally {
-        setLoading(false);
+      } else if (err.name === "NotFoundError") {
+        setError("Nenhuma câmera encontrada no dispositivo.");
+      } else {
+        setError("Erro ao iniciar a câmera. Tente novamente.");
       }
-    };
-
-    startCamera();
-
-    // Função de limpeza para parar a câmera quando o componente for desmontado
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
-  // Função que simula a leitura de um QR Code e redireciona
-  const handleSimulateScan = () => {
-    // Em uma aplicação real, aqui você usaria uma biblioteca
-    // como `jsqr` para ler o código do vídeo.
-    // Exemplo de URL de QR Code: https://seuapp.com/animal-details/123
-    const scannedUrl =
-      "https://seuapp.com/animal-details/a5c0b78c-0f9c-4e8a-a75d-f192b1a1c9a6";
-
-    // Extrai o ID da URL
-    const parts = scannedUrl.split("/");
-    const animalId = parts[parts.length - 1];
-
-    setSimulatedScanResult(animalId);
-
-    // Navega para a página de detalhes do animal correspondente
-    setTimeout(() => {
-      navigate(`/animal-details/${animalId}`);
-    }, 1500); // Simula um pequeno atraso de processamento
+      setCameraActive(false);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    startScanner();
+
+    // Função de limpeza para parar o scanner quando o componente for desmontado
+    return () => {
+      if (scanner) {
+        scanner.stop();
+        scanner.destroy(); // Libera os recursos da biblioteca
+      }
+    };
+  }, [retryAttempt]); // Reinicia o scanner se o usuário clicar em "Tentar Novamente"
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
@@ -84,10 +98,16 @@ function QrCodeScannerPage() {
           Leitor de QR Code
         </h1>
 
-        {/* Área de exibição da câmera */}
-        <div className="relative w-full aspect-square bg-gray-300 rounded-lg overflow-hidden border-4 border-dashed border-gray-400 flex items-center justify-center">
+        {/* Área de exibição da câmera com feedback visual */}
+        <div
+          className={`relative w-full aspect-square rounded-lg overflow-hidden border-4 flex items-center justify-center transition-colors duration-300 ${
+            error ? "border-red-500" : "border-gray-400 border-dashed"
+          }`}
+        >
           {loading && !error && (
-            <div className="text-lg text-gray-600">Iniciando câmera...</div>
+            <div className="text-lg text-gray-600 animate-pulse">
+              Iniciando câmera...
+            </div>
           )}
           {error && (
             <div className="text-lg text-red-500 text-center p-4">{error}</div>
@@ -95,37 +115,35 @@ function QrCodeScannerPage() {
           {cameraActive && !error && (
             <video
               ref={videoRef}
-              autoPlay
               playsInline
               className="w-full h-full object-cover absolute top-0 left-0"
             />
           )}
         </div>
 
-        {/* Feedback visual para o usuário */}
+        {/* Mensagem de status */}
         <div className="mt-6 text-center">
-          {simulatedScanResult ? (
-            <p className="text-green-600 font-bold text-xl">
-              QR Code lido com sucesso! Redirecionando...
-            </p>
-          ) : (
+          {cameraActive ? (
             <p className="text-gray-600">Aponte a câmera para um QR Code.</p>
+          ) : (
+            <p className="text-gray-600">
+              {error
+                ? "Não foi possível iniciar o leitor."
+                : "Aguardando câmera..."}
+            </p>
           )}
         </div>
 
-        {/* Botão de Simulação de Leitura */}
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={handleSimulateScan}
-            disabled={!cameraActive}
-            className={`flex items-center px-6 py-3 font-bold text-lg rounded-lg shadow-lg transition-all transform hover:scale-105 ${
-              cameraActive
-                ? "bg-purple-600 text-white hover:bg-purple-700"
-                : "bg-gray-400 text-gray-700 cursor-not-allowed"
-            }`}
-          >
-            <FaCamera className="mr-3" size={20} /> Simular Leitura
-          </button>
+        {/* Botão de Tentar Novamente */}
+        <div className="mt-8 flex justify-center space-x-4">
+          {!cameraActive && (
+            <button
+              onClick={() => setRetryAttempt((prev) => prev + 1)}
+              className="flex items-center px-6 py-3 font-bold text-lg rounded-lg shadow-lg bg-red-500 text-white hover:bg-red-600 transition-all transform hover:scale-105"
+            >
+              <FaSync className="mr-3" size={20} /> Tentar Novamente
+            </button>
+          )}
         </div>
       </div>
     </div>
