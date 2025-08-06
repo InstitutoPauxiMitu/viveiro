@@ -90,7 +90,7 @@ function QrCodeScannerPage() {
         scanner.destroy(); // Libera os recursos da biblioteca
       }
     };
-  }, [retryAttempt]); // Reinicia o scanner se o usuário clicar em "Tentar Novamente"
+  }, [retryAttempt, scanner]); // Reinicia o scanner se o usuário clicar em "Tentar Novamente" ou se o scanner mudar
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
