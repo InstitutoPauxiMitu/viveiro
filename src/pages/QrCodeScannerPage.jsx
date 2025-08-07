@@ -13,7 +13,6 @@ function QrCodeScannerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryAttempt, setRetryAttempt] = useState(0);
-  const [manualId, setManualId] = useState(""); // Novo estado para o ID manual
 
   // Função para iniciar o scanner de QR Code
   const startScanner = async () => {
@@ -94,6 +93,10 @@ function QrCodeScannerPage() {
   useEffect(() => {
     startScanner();
 
+    if (!videoRef.current) {
+      setTimeout(() => startScanner(), 500);
+      return;
+    }
     // Função de limpeza para parar o scanner quando o componente for desmontado
     return () => {
       if (scanner) {
@@ -102,14 +105,6 @@ function QrCodeScannerPage() {
       }
     };
   }, [retryAttempt, scanner]); // Reinicia o scanner se o usuário clicar em "Tentar Novamente" ou se o scanner mudar
-
-  const handleManualSubmit = () => {
-    if (manualId) {
-      navigate(`/animal-details/${manualId}`);
-    } else {
-      setError("Por favor, digite um ID de animal válido.");
-    }
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
@@ -143,6 +138,8 @@ function QrCodeScannerPage() {
             <video
               ref={videoRef}
               playsInline
+              autoPlay
+              muted
               className="w-full h-full object-cover absolute top-0 left-0"
             />
           )}
