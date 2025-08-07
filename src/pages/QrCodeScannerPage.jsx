@@ -172,27 +172,14 @@ function QrCodeScannerPage() {
             </button>
           )}
 
-          {/* Campo de entrada manual do ID */}
-          <div className="w-full">
-            <p className="text-center text-gray-600 mb-2">
-              Ou digite o ID do animal manualmente:
-            </p>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={manualId}
-                onChange={(e) => setManualId(e.target.value)}
-                placeholder="ID do Animal"
-                className="flex-grow px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg transition-all duration-200"
-              />
-              <button
-                onClick={handleManualSubmit}
-                className="flex-shrink-0 px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                <FaKeyboard className="mr-2" size={20} /> Ir
-              </button>
-            </div>
-          </div>
+          {!cameraActive && (
+            <button
+              onClick={startScanner}
+              className="flex items-center px-6 py-3 font-bold text-lg rounded-lg shadow-lg bg-green-500 text-white hover:bg-green-600 transition-all transform hover:scale-105"
+            >
+              <FaCamera className="mr-3" size={20} /> Ativar Câmera Manualmente
+            </button>
+          )}
         </div>
       </div>
     </div>
